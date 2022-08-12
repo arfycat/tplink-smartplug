@@ -120,7 +120,16 @@ try:
     sock_tcp.connect((ip, port))
     sock_tcp.settimeout(None)
     sock_tcp.send(encrypt(cmd))
-    data = sock_tcp.recv(2048)
+
+    data = bytearray()
+    while True:
+        buf = sock_tcp.recv(4096)
+        if len(buf) == 0:
+            break
+        data += buf
+        total_length = len(data)
+        if total_length > 4 and int.from_bytes(data[0:4], 'big') + 4 <= total_length:
+            break
     sock_tcp.close()
 
     decrypted = decrypt(data[4:])
